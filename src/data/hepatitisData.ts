@@ -39,7 +39,7 @@ function enrichRecord(d: Omit<HepRecord, 'economicIndex' | 'incidencePer100k' | 
   return { ...d, economicIndex, incidencePer100k, mortalityPer100k, caseFatalityPct, riskIndex, preventionIndex };
 }
 
-export const rawData: HepRecord[] = [
+const rawRecords = [
   {country:"India",region:"Asia",incomeLevel:"Lower middle",population:1324000000,gdpPerCapita:2000,healthExpenditure:200,year:2016,cases:2758473,deaths:17474,complicatedCases:201143,treatmentSuccess:68.67,doctorsPer100k:1.03,facilitiesPerMln:0.28,healthcareAccess:53.8,malnutrition:17.84,smoking:12.79,urbanization:35.35,vaccinationCoverage:57.09,birthDoseCoverage:52.31,safeInjections:53.29,bloodScreening:62.69},
   {country:"India",region:"Asia",incomeLevel:"Lower middle",population:1339888000,gdpPerCapita:2040,healthExpenditure:202,year:2017,cases:2986366,deaths:19608,complicatedCases:162788,treatmentSuccess:78.14,doctorsPer100k:0.67,facilitiesPerMln:0.14,healthcareAccess:42.73,malnutrition:16.78,smoking:12.73,urbanization:31.94,vaccinationCoverage:44.33,birthDoseCoverage:51.47,safeInjections:55.62,bloodScreening:60.06},
   {country:"India",region:"Asia",incomeLevel:"Lower middle",population:1355776000,gdpPerCapita:2080,healthExpenditure:206,year:2018,cases:2520539,deaths:16146,complicatedCases:173918,treatmentSuccess:71.09,doctorsPer100k:0.5,facilitiesPerMln:0.26,healthcareAccess:46.63,malnutrition:17.09,smoking:11.79,urbanization:33.21,vaccinationCoverage:60.04,birthDoseCoverage:56.69,safeInjections:56.61,bloodScreening:58.09},
