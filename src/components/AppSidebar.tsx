@@ -26,7 +26,7 @@ export function AppSidebar() {
             {!collapsed && <span className="font-semibold text-sidebar-primary-foreground text-lg">HepB Monitor</span>}
           </div>
         </div>
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel>Аналитика</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
