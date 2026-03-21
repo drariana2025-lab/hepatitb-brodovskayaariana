@@ -92,6 +92,8 @@ const rawRecords = [
   {country:"China",region:"Asia",incomeLevel:"Upper middle",population:1452528000,gdpPerCapita:9720,healthExpenditure:636,year:2020,cases:2518358,deaths:14066,complicatedCases:151743,treatmentSuccess:78.19,doctorsPer100k:0.79,facilitiesPerMln:0.17,healthcareAccess:70.91,malnutrition:5.56,smoking:27.06,urbanization:60.52,vaccinationCoverage:62.95,birthDoseCoverage:63.92,safeInjections:68.7,bloodScreening:68.76},
 ];
 
+export const rawData: HepRecord[] = rawRecords.map(enrichRecord);
+
 export const countries = [...new Set(rawData.map(d => d.country))];
 export const regions = [...new Set(rawData.map(d => d.region))];
 export const incomeLevels = [...new Set(rawData.map(d => d.incomeLevel))];
