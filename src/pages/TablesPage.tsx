@@ -13,9 +13,16 @@ function StatusBadge({ value, thresholds }: { value: number; thresholds: [number
   return <span className={`inline-block w-3 h-3 rounded-full ${color}`} />;
 }
 
+interface RowData {
+  [key: string]: string | number;
+  _statusVal: number;
+  _thresholdLow: number;
+  _thresholdHigh: number;
+}
+
 function SortableTable({ headers, rows, defaultSortCol, title }: {
   headers: { label: string; key: string }[];
-  rows: Record<string, string | number>[];
+  rows: RowData[];
   defaultSortCol: string;
   title: string;
 }) {
