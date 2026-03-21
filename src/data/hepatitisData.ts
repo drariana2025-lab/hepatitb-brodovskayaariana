@@ -20,6 +20,23 @@ export interface HepRecord {
   birthDoseCoverage: number;
   safeInjections: number;
   bloodScreening: number;
+  // Computed fields
+  economicIndex: number;
+  incidencePer100k: number;
+  mortalityPer100k: number;
+  caseFatalityPct: number;
+  riskIndex: number;
+  preventionIndex: number;
+}
+
+function enrichRecord(d: Omit<HepRecord, 'economicIndex' | 'incidencePer100k' | 'mortalityPer100k' | 'caseFatalityPct' | 'riskIndex' | 'preventionIndex'>): HepRecord {
+  const economicIndex = +(d.gdpPerCapita * 0.6 + d.healthExpenditure * 0.4).toFixed(2);
+  const incidencePer100k = +((d.cases / d.population) * 100000).toFixed(2);
+  const mortalityPer100k = +((d.deaths / d.population) * 100000).toFixed(2);
+  const caseFatalityPct = +((d.deaths / d.cases) * 100).toFixed(2);
+  const riskIndex = +(d.smoking * 0.5 + d.malnutrition * 0.5).toFixed(2);
+  const preventionIndex = +(100 - riskIndex).toFixed(2);
+  return { ...d, economicIndex, incidencePer100k, mortalityPer100k, caseFatalityPct, riskIndex, preventionIndex };
 }
 
 export const rawData: HepRecord[] = [
