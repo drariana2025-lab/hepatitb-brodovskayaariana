@@ -9,7 +9,7 @@ import { exportCSV, exportPDF } from '@/lib/exportUtils';
 type SortDir = 'asc' | 'desc';
 
 function StatusBadge({ value, thresholds }: { value: number; thresholds: [number, number] }) {
-  const color = value >= thresholds[1] ? 'bg-green-500' : value >= thresholds[0] ? 'bg-yellow-500' : 'bg-red-500';
+  const color = value >= thresholds[1] ? 'bg-accent' : value >= thresholds[0] ? 'bg-warning' : 'bg-destructive';
   return <span className={`inline-block w-3 h-3 rounded-full ${color}`} />;
 }
 
