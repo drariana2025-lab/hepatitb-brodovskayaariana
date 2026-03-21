@@ -11,6 +11,8 @@ const items = [
   { title: 'Вакцинация', url: '/vaccination', icon: Syringe },
   { title: 'Здравоохранение', url: '/healthcare', icon: Activity },
   { title: 'Факторы риска', url: '/risk-factors', icon: AlertTriangle },
+  { title: 'Таблицы', url: '/tables', icon: Table },
+  { title: 'Графики (11)', url: '/charts', icon: PieChart },
 ];
 
 export function AppSidebar() {
