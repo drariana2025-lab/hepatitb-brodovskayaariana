@@ -20,9 +20,26 @@ export interface HepRecord {
   birthDoseCoverage: number;
   safeInjections: number;
   bloodScreening: number;
+  // Computed fields
+  economicIndex: number;
+  incidencePer100k: number;
+  mortalityPer100k: number;
+  caseFatalityPct: number;
+  riskIndex: number;
+  preventionIndex: number;
 }
 
-export const rawData: HepRecord[] = [
+function enrichRecord(d: Omit<HepRecord, 'economicIndex' | 'incidencePer100k' | 'mortalityPer100k' | 'caseFatalityPct' | 'riskIndex' | 'preventionIndex'>): HepRecord {
+  const economicIndex = +(d.gdpPerCapita * 0.6 + d.healthExpenditure * 0.4).toFixed(2);
+  const incidencePer100k = +((d.cases / d.population) * 100000).toFixed(2);
+  const mortalityPer100k = +((d.deaths / d.population) * 100000).toFixed(2);
+  const caseFatalityPct = +((d.deaths / d.cases) * 100).toFixed(2);
+  const riskIndex = +(d.smoking * 0.5 + d.malnutrition * 0.5).toFixed(2);
+  const preventionIndex = +(100 - riskIndex).toFixed(2);
+  return { ...d, economicIndex, incidencePer100k, mortalityPer100k, caseFatalityPct, riskIndex, preventionIndex };
+}
+
+const rawRecords = [
   {country:"India",region:"Asia",incomeLevel:"Lower middle",population:1324000000,gdpPerCapita:2000,healthExpenditure:200,year:2016,cases:2758473,deaths:17474,complicatedCases:201143,treatmentSuccess:68.67,doctorsPer100k:1.03,facilitiesPerMln:0.28,healthcareAccess:53.8,malnutrition:17.84,smoking:12.79,urbanization:35.35,vaccinationCoverage:57.09,birthDoseCoverage:52.31,safeInjections:53.29,bloodScreening:62.69},
   {country:"India",region:"Asia",incomeLevel:"Lower middle",population:1339888000,gdpPerCapita:2040,healthExpenditure:202,year:2017,cases:2986366,deaths:19608,complicatedCases:162788,treatmentSuccess:78.14,doctorsPer100k:0.67,facilitiesPerMln:0.14,healthcareAccess:42.73,malnutrition:16.78,smoking:12.73,urbanization:31.94,vaccinationCoverage:44.33,birthDoseCoverage:51.47,safeInjections:55.62,bloodScreening:60.06},
   {country:"India",region:"Asia",incomeLevel:"Lower middle",population:1355776000,gdpPerCapita:2080,healthExpenditure:206,year:2018,cases:2520539,deaths:16146,complicatedCases:173918,treatmentSuccess:71.09,doctorsPer100k:0.5,facilitiesPerMln:0.26,healthcareAccess:46.63,malnutrition:17.09,smoking:11.79,urbanization:33.21,vaccinationCoverage:60.04,birthDoseCoverage:56.69,safeInjections:56.61,bloodScreening:58.09},
@@ -74,6 +91,8 @@ export const rawData: HepRecord[] = [
   {country:"China",region:"Asia",incomeLevel:"Upper middle",population:1435896000,gdpPerCapita:9540,healthExpenditure:627,year:2019,cases:2465715,deaths:14061,complicatedCases:118586,treatmentSuccess:77.57,doctorsPer100k:1.3,facilitiesPerMln:0.24,healthcareAccess:64.34,malnutrition:5.89,smoking:26.88,urbanization:59.03,vaccinationCoverage:71.63,birthDoseCoverage:68.63,safeInjections:65.87,bloodScreening:79.03},
   {country:"China",region:"Asia",incomeLevel:"Upper middle",population:1452528000,gdpPerCapita:9720,healthExpenditure:636,year:2020,cases:2518358,deaths:14066,complicatedCases:151743,treatmentSuccess:78.19,doctorsPer100k:0.79,facilitiesPerMln:0.17,healthcareAccess:70.91,malnutrition:5.56,smoking:27.06,urbanization:60.52,vaccinationCoverage:62.95,birthDoseCoverage:63.92,safeInjections:68.7,bloodScreening:68.76},
 ];
+
+export const rawData: HepRecord[] = rawRecords.map(enrichRecord);
 
 export const countries = [...new Set(rawData.map(d => d.country))];
 export const regions = [...new Set(rawData.map(d => d.region))];
