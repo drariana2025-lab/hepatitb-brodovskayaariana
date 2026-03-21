@@ -72,7 +72,7 @@ function SortableTable({ headers, rows, defaultSortCol, title }: {
               <tr key={i} className="border-b hover:bg-muted/30 transition-colors">
                 {headers.map(h => (
                   <td key={h.key} className="px-3 py-2 whitespace-nowrap">
-                    {h.key === 'status' ? <StatusBadge value={row._statusVal as number} thresholds={row._thresholds as [number, number]} /> : (typeof row[h.key] === 'number' ? (row[h.key] as number).toLocaleString() : row[h.key])}
+                    {h.key === 'status' ? <StatusBadge value={row._statusVal} thresholds={[row._thresholdLow, row._thresholdHigh]} /> : (typeof row[h.key] === 'number' ? (row[h.key] as number).toLocaleString() : row[h.key])}
                   </td>
                 ))}
               </tr>
