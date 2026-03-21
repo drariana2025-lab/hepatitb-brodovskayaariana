@@ -128,27 +128,27 @@ export default function TablesPage() {
     country: a.country, region: a.region, incomeLevel: a.incomeLevel,
     gdpPerCapita: a.gdpPerCapita, healthExpenditure: a.healthExpenditure, economicIndex: a.economicIndex,
     population: a.population,
-    status: '', _statusVal: a.economicIndex, _thresholds: [2000, 8000] as [number, number],
+    status: '', _statusVal: a.economicIndex, _thresholdLow: 2000, _thresholdHigh: 8000,
   })), [aggregate]);
 
   const table2 = useMemo(() => aggregate.map(a => ({
     country: a.country, region: a.region, cases: a.cases, deaths: a.deaths,
     incidencePer100k: a.incidencePer100k, mortalityPer100k: a.mortalityPer100k,
     caseFatalityPct: a.caseFatalityPct, complicatedCases: a.complicatedCases,
-    status: '', _statusVal: 100 - a.mortalityPer100k, _thresholds: [95, 99] as [number, number],
+    status: '', _statusVal: 100 - a.mortalityPer100k, _thresholdLow: 95, _thresholdHigh: 99,
   })), [aggregate]);
 
   const table3 = useMemo(() => aggregate.map(a => ({
     country: a.country, treatmentSuccess: a.treatmentSuccess, doctorsPer100k: a.doctorsPer100k,
     facilitiesPerMln: a.facilitiesPerMln, healthcareAccess: a.healthcareAccess,
     vaccinationCoverage: a.vaccinationCoverage,
-    status: '', _statusVal: a.treatmentSuccess, _thresholds: [70, 85] as [number, number],
+    status: '', _statusVal: a.treatmentSuccess, _thresholdLow: 70, _thresholdHigh: 85,
   })), [aggregate]);
 
   const table4 = useMemo(() => aggregate.map(a => ({
     country: a.country, smoking: a.smoking, malnutrition: a.malnutrition,
     urbanization: a.urbanization, riskIndex: a.riskIndex, preventionIndex: a.preventionIndex,
-    status: '', _statusVal: a.preventionIndex, _thresholds: [75, 90] as [number, number],
+    status: '', _statusVal: a.preventionIndex, _thresholdLow: 75, _thresholdHigh: 90,
   })), [aggregate]);
 
   return (
