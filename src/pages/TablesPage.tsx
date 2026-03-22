@@ -87,7 +87,8 @@ function SortableTable({ headers, rows, defaultSortCol, title }: {
 export default function TablesPage() {
   const { filteredData } = useFilters();
 
-  const aggregate = useMemo(() => {
+  // Table 1: Economic - aggregated by country
+  const table1 = useMemo(() => {
     const map = new Map<string, typeof filteredData>();
     filteredData.forEach(d => {
       if (!map.has(d.country)) map.set(d.country, []);
@@ -100,56 +101,68 @@ export default function TablesPage() {
         country,
         region: recs[0].region,
         incomeLevel: recs[0].incomeLevel,
-        population: Math.round(avg(d => d.population)),
-        gdpPerCapita: avg(d => d.gdpPerCapita),
-        healthExpenditure: avg(d => d.healthExpenditure),
         economicIndex: avg(d => d.economicIndex),
-        cases: Math.round(avg(d => d.cases)),
-        deaths: Math.round(avg(d => d.deaths)),
-        incidencePer100k: avg(d => d.incidencePer100k),
-        mortalityPer100k: avg(d => d.mortalityPer100k),
-        caseFatalityPct: avg(d => d.caseFatalityPct),
-        treatmentSuccess: avg(d => d.treatmentSuccess),
-        doctorsPer100k: avg(d => d.doctorsPer100k),
-        facilitiesPerMln: avg(d => d.facilitiesPerMln),
-        healthcareAccess: avg(d => d.healthcareAccess),
-        vaccinationCoverage: avg(d => d.vaccinationCoverage),
-        smoking: avg(d => d.smoking),
-        malnutrition: avg(d => d.malnutrition),
-        urbanization: avg(d => d.urbanization),
-        riskIndex: avg(d => d.riskIndex),
-        preventionIndex: avg(d => d.preventionIndex),
-        complicatedCases: Math.round(avg(d => d.complicatedCases)),
-      };
+        healthExpenditure: avg(d => d.healthExpenditure),
+        populationMln: +(avg(d => d.population) / 1000000).toFixed(1),
+        status: '',
+        _statusVal: avg(d => d.economicIndex),
+        _thresholdLow: 2000,
+        _thresholdHigh: 8000,
+      } as RowData;
     });
   }, [filteredData]);
 
-  const table1 = useMemo(() => aggregate.map(a => ({
-    country: a.country, region: a.region, incomeLevel: a.incomeLevel,
-    gdpPerCapita: a.gdpPerCapita, healthExpenditure: a.healthExpenditure, economicIndex: a.economicIndex,
-    population: a.population,
-    status: '', _statusVal: a.economicIndex, _thresholdLow: 2000, _thresholdHigh: 8000,
-  })), [aggregate]);
+  // Table 2: Epidemiology - per country per year
+  const table2 = useMemo(() => {
+    return filteredData.map(d => ({
+      country: d.country,
+      year: d.year,
+      incidencePer100k: d.incidencePer100k,
+      mortalityPer100k: d.mortalityPer100k,
+      caseFatalityPct: d.caseFatalityPct,
+      chronicPct: +((d.complicatedCases / d.cases) * 100).toFixed(2),
+      status: '',
+      _statusVal: 100 - d.mortalityPer100k,
+      _thresholdLow: 95,
+      _thresholdHigh: 99,
+    } as RowData));
+  }, [filteredData]);
 
-  const table2 = useMemo(() => aggregate.map(a => ({
-    country: a.country, region: a.region, cases: a.cases, deaths: a.deaths,
-    incidencePer100k: a.incidencePer100k, mortalityPer100k: a.mortalityPer100k,
-    caseFatalityPct: a.caseFatalityPct, complicatedCases: a.complicatedCases,
-    status: '', _statusVal: 100 - a.mortalityPer100k, _thresholdLow: 95, _thresholdHigh: 99,
-  })), [aggregate]);
+  // Table 3: Healthcare - per country per year
+  const table3 = useMemo(() => {
+    return filteredData.map(d => {
+      const infraIndex = +(d.doctorsPer100k * 10 + d.facilitiesPerMln * 50).toFixed(2);
+      const accessIndex = +(d.healthcareAccess * 0.5 + d.treatmentSuccess * 0.5).toFixed(2);
+      return {
+        country: d.country,
+        year: d.year,
+        infraIndex,
+        accessIndex,
+        vaccinationCoverage: d.vaccinationCoverage,
+        treatmentSuccess: d.treatmentSuccess,
+        status: '',
+        _statusVal: d.treatmentSuccess,
+        _thresholdLow: 70,
+        _thresholdHigh: 85,
+      } as RowData;
+    });
+  }, [filteredData]);
 
-  const table3 = useMemo(() => aggregate.map(a => ({
-    country: a.country, treatmentSuccess: a.treatmentSuccess, doctorsPer100k: a.doctorsPer100k,
-    facilitiesPerMln: a.facilitiesPerMln, healthcareAccess: a.healthcareAccess,
-    vaccinationCoverage: a.vaccinationCoverage,
-    status: '', _statusVal: a.treatmentSuccess, _thresholdLow: 70, _thresholdHigh: 85,
-  })), [aggregate]);
-
-  const table4 = useMemo(() => aggregate.map(a => ({
-    country: a.country, smoking: a.smoking, malnutrition: a.malnutrition,
-    urbanization: a.urbanization, riskIndex: a.riskIndex, preventionIndex: a.preventionIndex,
-    status: '', _statusVal: a.preventionIndex, _thresholdLow: 75, _thresholdHigh: 90,
-  })), [aggregate]);
+  // Table 4: Risk factors - per country per year
+  const table4 = useMemo(() => {
+    return filteredData.map(d => ({
+      country: d.country,
+      year: d.year,
+      riskIndex: d.riskIndex,
+      preventionIndex: d.preventionIndex,
+      smoking: d.smoking,
+      malnutrition: d.malnutrition,
+      status: '',
+      _statusVal: d.preventionIndex,
+      _thresholdLow: 75,
+      _thresholdHigh: 90,
+    } as RowData));
+  }, [filteredData]);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -165,33 +178,29 @@ export default function TablesPage() {
         <TabsContent value="economic">
           <SortableTable title="Страны — экономический потенциал" defaultSortCol="economicIndex" headers={[
             { label: 'Статус', key: 'status' }, { label: 'Страна', key: 'country' }, { label: 'Регион', key: 'region' },
-            { label: 'Уровень дохода', key: 'incomeLevel' }, { label: 'Население', key: 'population' },
-            { label: 'ВВП/душу ($)', key: 'gdpPerCapita' }, { label: 'Расх. здрав. ($)', key: 'healthExpenditure' },
-            { label: 'Эконом. индекс', key: 'economicIndex' },
+            { label: 'Уровень дохода', key: 'incomeLevel' }, { label: 'Экономический индекс', key: 'economicIndex' },
+            { label: 'Расходы на здрав. ($)', key: 'healthExpenditure' }, { label: 'Население (млн)', key: 'populationMln' },
           ]} rows={table1} />
         </TabsContent>
         <TabsContent value="epidemiology">
           <SortableTable title="Гепатит B — эпидемиологическая ситуация" defaultSortCol="mortalityPer100k" headers={[
-            { label: 'Статус', key: 'status' }, { label: 'Страна', key: 'country' }, { label: 'Случаи', key: 'cases' },
-            { label: 'Смерти', key: 'deaths' }, { label: 'Заболев./100тыс', key: 'incidencePer100k' },
-            { label: 'Смерт./100тыс', key: 'mortalityPer100k' }, { label: 'Летальность %', key: 'caseFatalityPct' },
-            { label: 'Осложнения', key: 'complicatedCases' },
+            { label: 'Статус', key: 'status' }, { label: 'Страна', key: 'country' }, { label: 'Год', key: 'year' },
+            { label: 'Заболев./100тыс', key: 'incidencePer100k' }, { label: 'Смертн./100тыс', key: 'mortalityPer100k' },
+            { label: 'Летальность (%)', key: 'caseFatalityPct' }, { label: 'Доля хронич. форм (%)', key: 'chronicPct' },
           ]} rows={table2} />
         </TabsContent>
         <TabsContent value="healthcare">
-          <SortableTable title="Медсистема — готовность к Гепатиту B" defaultSortCol="treatmentSuccess" headers={[
-            { label: 'Статус', key: 'status' }, { label: 'Страна', key: 'country' },
-            { label: 'Успешность лечения %', key: 'treatmentSuccess' }, { label: 'Врачи/100тыс', key: 'doctorsPer100k' },
-            { label: 'Учрежд./млн', key: 'facilitiesPerMln' }, { label: 'Доступ %', key: 'healthcareAccess' },
-            { label: 'Вакцинация %', key: 'vaccinationCoverage' },
+          <SortableTable title="Медсистема — готовность к Гепатиту B" defaultSortCol="accessIndex" headers={[
+            { label: 'Статус', key: 'status' }, { label: 'Страна', key: 'country' }, { label: 'Год', key: 'year' },
+            { label: 'Инд. инфраструктуры', key: 'infraIndex' }, { label: 'Инд. доступности', key: 'accessIndex' },
+            { label: 'Вакцинация (%)', key: 'vaccinationCoverage' }, { label: 'Успешность лечения (%)', key: 'treatmentSuccess' },
           ]} rows={table3} />
         </TabsContent>
         <TabsContent value="risk">
           <SortableTable title="Социально-поведенческие риски" defaultSortCol="riskIndex" headers={[
-            { label: 'Статус', key: 'status' }, { label: 'Страна', key: 'country' },
-            { label: 'Курение %', key: 'smoking' }, { label: 'Недоедание %', key: 'malnutrition' },
-            { label: 'Урбанизация %', key: 'urbanization' }, { label: 'Инд. риска', key: 'riskIndex' },
-            { label: 'Инд. профилакт.', key: 'preventionIndex' },
+            { label: 'Статус', key: 'status' }, { label: 'Страна', key: 'country' }, { label: 'Год', key: 'year' },
+            { label: 'Индекс риска', key: 'riskIndex' }, { label: 'Инд. профилактики', key: 'preventionIndex' },
+            { label: 'Курение (%)', key: 'smoking' }, { label: 'Недоедание (%)', key: 'malnutrition' },
           ]} rows={table4} />
         </TabsContent>
       </Tabs>
