@@ -49,7 +49,7 @@ export default function MainDashboard() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <h1 className="page-title">Главный дашборд — Гепатит B</h1>
+      <h1 className="page-title">Главная страница — Гепатит B</h1>
       <FilterBar />
       <div className="grid grid-cols-4 gap-4">
         {[
