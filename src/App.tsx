@@ -10,6 +10,8 @@ import MainDashboard from "@/pages/MainDashboard";
 import VaccinationPage from "@/pages/VaccinationPage";
 import HealthcarePage from "@/pages/HealthcarePage";
 import RiskFactorsPage from "@/pages/RiskFactorsPage";
+import TablesPage from "@/pages/TablesPage";
+import ChartsPage from "@/pages/ChartsPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ const App = () => (
                     <Route path="/vaccination" element={<VaccinationPage />} />
                     <Route path="/healthcare" element={<HealthcarePage />} />
                     <Route path="/risk-factors" element={<RiskFactorsPage />} />
+                    <Route path="/tables" element={<TablesPage />} />
+                    <Route path="/charts" element={<ChartsPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>

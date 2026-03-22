@@ -29,6 +29,19 @@ export interface HepRecord {
   preventionIndex: number;
 }
 
+const countryMap: Record<string, string> = {
+  'India': 'Индия', 'Pakistan': 'Пакистан', 'Nigeria': 'Нигерия', 'South Africa': 'Южная Африка',
+  'Brazil': 'Бразилия', 'Russia': 'Россия', 'Indonesia': 'Индонезия', 'USA': 'США',
+  'Bangladesh': 'Бангладеш', 'China': 'Китай',
+};
+const regionMap: Record<string, string> = {
+  'Asia': 'Азия', 'Africa': 'Африка', 'Europe': 'Европа',
+  'South America': 'Южная Америка', 'North America': 'Северная Америка',
+};
+const incomeMap: Record<string, string> = {
+  'Low': 'Низкий', 'Lower middle': 'Ниже среднего', 'Upper middle': 'Выше среднего', 'High': 'Высокий',
+};
+
 function enrichRecord(d: Omit<HepRecord, 'economicIndex' | 'incidencePer100k' | 'mortalityPer100k' | 'caseFatalityPct' | 'riskIndex' | 'preventionIndex'>): HepRecord {
   const economicIndex = +(d.gdpPerCapita * 0.6 + d.healthExpenditure * 0.4).toFixed(2);
   const incidencePer100k = +((d.cases / d.population) * 100000).toFixed(2);
@@ -36,7 +49,13 @@ function enrichRecord(d: Omit<HepRecord, 'economicIndex' | 'incidencePer100k' | 
   const caseFatalityPct = +((d.deaths / d.cases) * 100).toFixed(2);
   const riskIndex = +(d.smoking * 0.5 + d.malnutrition * 0.5).toFixed(2);
   const preventionIndex = +(100 - riskIndex).toFixed(2);
-  return { ...d, economicIndex, incidencePer100k, mortalityPer100k, caseFatalityPct, riskIndex, preventionIndex };
+  return {
+    ...d,
+    country: countryMap[d.country] || d.country,
+    region: regionMap[d.region] || d.region,
+    incomeLevel: incomeMap[d.incomeLevel] || d.incomeLevel,
+    economicIndex, incidencePer100k, mortalityPer100k, caseFatalityPct, riskIndex, preventionIndex,
+  };
 }
 
 const rawRecords = [
