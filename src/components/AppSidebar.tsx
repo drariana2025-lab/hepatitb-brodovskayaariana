@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/sidebar';
 
 const items = [
-  { title: 'Главный дашборд', url: '/', icon: BarChart3 },
+  { title: 'Главная страница', url: '/', icon: BarChart3 },
   { title: 'Вакцинация', url: '/vaccination', icon: Syringe },
   { title: 'Здравоохранение', url: '/healthcare', icon: Activity },
   { title: 'Факторы риска', url: '/risk-factors', icon: AlertTriangle },
