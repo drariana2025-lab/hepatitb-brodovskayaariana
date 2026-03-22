@@ -34,7 +34,7 @@ const App = () => (
       <Sonner />
       <FilterProvider>
         <BrowserRouter>
-          <SidebarProvider>
+          <SpaRedirectHandler />
             <div className="min-h-screen flex w-full">
               <AppSidebar />
               <div className="flex-1 flex flex-col">
