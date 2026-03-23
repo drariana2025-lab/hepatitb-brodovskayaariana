@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { useFilters } from '@/contexts/FilterContext';
 import { FilterBar } from '@/components/FilterBar';
+import { Footer } from '@/components/Footer';
 import { COLORS } from '@/data/hepatitisData';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Label,
 } from 'recharts';
 
 export default function RiskFactorsPage() {
@@ -47,11 +48,11 @@ export default function RiskFactorsPage() {
   const correlationData = useMemo(() => {
     const fields = [
       { key: 'vaccinationCoverage' as const, label: 'Вакцинация' },
-      { key: 'healthcareAccess' as const, label: 'Доступ' },
+      { key: 'healthcareAccess' as const, label: 'Доступ к медицине' },
       { key: 'smoking' as const, label: 'Курение' },
       { key: 'malnutrition' as const, label: 'Недоедание' },
       { key: 'urbanization' as const, label: 'Урбанизация' },
-      { key: 'treatmentSuccess' as const, label: 'Лечение' },
+      { key: 'treatmentSuccess' as const, label: 'Успешность лечения' },
     ];
     const corr = (a: number[], b: number[]) => {
       const n = a.length;
@@ -109,9 +110,15 @@ export default function RiskFactorsPage() {
           <ResponsiveContainer width="100%" height={350}>
             <BarChart data={gdpVsCases}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="country" fontSize={10} angle={-20} textAnchor="end" height={50} />
-              <YAxis yAxisId="left" fontSize={11} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
-              <YAxis yAxisId="right" orientation="right" fontSize={11} tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
+              <XAxis dataKey="country" fontSize={10} angle={-20} textAnchor="end" height={50}>
+                <Label value="Страна" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis yAxisId="left" fontSize={11} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}>
+                <Label value="ВВП на душу (USD)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
+              <YAxis yAxisId="right" orientation="right" fontSize={11} tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}>
+                <Label value="Случаи (среднее)" angle={90} position="insideRight" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Legend />
               <Bar yAxisId="left" dataKey="gdp" fill="#2C7DA0" name="ВВП на душу ($)" radius={[2, 2, 0, 0]} />
@@ -152,6 +159,7 @@ export default function RiskFactorsPage() {
           </table>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

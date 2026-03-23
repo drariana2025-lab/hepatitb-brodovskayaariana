@@ -4,10 +4,12 @@ import { COLORS } from '@/data/hepatitisData';
 import { FilterBar } from '@/components/FilterBar';
 import { CountryDetailPanel } from '@/components/CountryDetailPanel';
 import { VaccinationCalculator } from '@/components/VaccinationCalculator';
+import { ProjectInfo } from '@/components/ProjectInfo';
+import { Footer } from '@/components/Footer';
 import { TrendingUp, Users, Heart, Syringe } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-  BarChart, Bar,
+  BarChart, Bar, Label,
 } from 'recharts';
 
 export default function MainDashboard() {
@@ -50,6 +52,7 @@ export default function MainDashboard() {
   return (
     <div className="space-y-5 animate-fade-in">
       <h1 className="page-title">Главная страница — Гепатит B</h1>
+      <ProjectInfo />
       <FilterBar />
       <div className="grid grid-cols-4 gap-4">
         {[
@@ -73,8 +76,12 @@ export default function MainDashboard() {
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={lineData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="year" fontSize={12} />
-              <YAxis fontSize={11} tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
+              <XAxis dataKey="year" fontSize={12}>
+                <Label value="Год" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis fontSize={11} tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}>
+                <Label value="Количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Legend />
               {countriesInData.map((c, i) => (
@@ -89,8 +96,12 @@ export default function MainDashboard() {
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={barData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="country" fontSize={10} angle={-20} textAnchor="end" height={50} />
-              <YAxis fontSize={11} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
+              <XAxis dataKey="country" fontSize={10} angle={-20} textAnchor="end" height={50}>
+                <Label value="Страна" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis fontSize={11} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}>
+                <Label value="Количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Legend />
               <Bar dataKey="deaths" fill="#E74C3C" name="Смерти" radius={[2, 2, 0, 0]} onClick={(d) => setDetailCountry(d.country)} cursor="pointer" />
@@ -101,6 +112,7 @@ export default function MainDashboard() {
       </div>
       <VaccinationCalculator />
       <CountryDetailPanel />
+      <Footer />
     </div>
   );
 }

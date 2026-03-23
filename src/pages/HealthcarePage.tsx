@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { useFilters } from '@/contexts/FilterContext';
 import { FilterBar } from '@/components/FilterBar';
+import { Footer } from '@/components/Footer';
 import { COLORS } from '@/data/hepatitisData';
 import {
   ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Cell, Legend,
+  BarChart, Bar, Cell, Legend, Label,
 } from 'recharts';
 
 export default function HealthcarePage() {
@@ -18,13 +19,7 @@ export default function HealthcarePage() {
     });
     return Array.from(byIncome.entries()).map(([income, vals]) => {
       const sorted = [...vals].sort((a, b) => a - b);
-      const q1 = sorted[Math.floor(sorted.length * 0.25)];
-      const median = sorted[Math.floor(sorted.length * 0.5)];
-      const q3 = sorted[Math.floor(sorted.length * 0.75)];
-      const min = sorted[0];
-      const max = sorted[sorted.length - 1];
-      const avg = +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
-      return { income, min, q1, median, q3, max, avg, count: vals.length };
+      return { income, min: sorted[0], median: sorted[Math.floor(sorted.length * 0.5)], max: sorted[sorted.length - 1], avg: +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1), count: vals.length };
     });
   }, [filteredData]);
 
@@ -61,8 +56,12 @@ export default function HealthcarePage() {
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={boxPlotData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="income" fontSize={11} />
-              <YAxis domain={[60, 100]} fontSize={11} />
+              <XAxis dataKey="income" fontSize={11}>
+                <Label value="Уровень дохода" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis domain={[60, 100]} fontSize={11}>
+                <Label value="Успешность лечения (%)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <Tooltip formatter={(v: number) => `${v}%`} />
               <Legend />
               <Bar dataKey="min" fill="#E74C3C" name="Мин" radius={[2, 2, 0, 0]} />
@@ -77,8 +76,12 @@ export default function HealthcarePage() {
           <ResponsiveContainer width="100%" height={300}>
             <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="doctors" name="Врачи на 100тыс" fontSize={11} />
-              <YAxis dataKey="treatment" name="Успешность (%)" domain={[65, 100]} fontSize={11} />
+              <XAxis dataKey="doctors" name="Врачи на 100тыс" fontSize={11}>
+                <Label value="Врачи на 100 тыс." position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis dataKey="treatment" name="Успешность (%)" domain={[65, 100]} fontSize={11}>
+                <Label value="Успешность лечения (%)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <ZAxis dataKey="facilities" range={[50, 500]} name="Учреждения на млн" />
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Scatter data={bubbleData} fill="#2C7DA0">
@@ -93,14 +96,19 @@ export default function HealthcarePage() {
         <ResponsiveContainer width="100%" height={350}>
           <ScatterChart>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="access" name="Доступ к медицине (%)" fontSize={11} />
-            <YAxis dataKey="treatment" name="Успешность лечения (%)" domain={[60, 100]} fontSize={11} />
+            <XAxis dataKey="access" name="Доступ к медицине (%)" fontSize={11}>
+              <Label value="Доступ к медицине (%)" position="insideBottom" offset={-3} fontSize={12} />
+            </XAxis>
+            <YAxis dataKey="treatment" name="Успешность лечения (%)" domain={[60, 100]} fontSize={11}>
+              <Label value="Успешность лечения (%)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+            </YAxis>
             <ZAxis range={[40, 40]} />
             <Tooltip />
             <Scatter data={accessData} fill="#2D9F5F" />
           </ScatterChart>
         </ResponsiveContainer>
       </div>
+      <Footer />
     </div>
   );
 }
