@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useFilters } from '@/contexts/FilterContext';
 import { FilterBar } from '@/components/FilterBar';
+import { Footer } from '@/components/Footer';
 import { COLORS } from '@/data/hepatitisData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell, Label,
   LineChart, Line,
   PieChart, Pie,
   ScatterChart, Scatter, ZAxis,
@@ -18,14 +19,12 @@ export default function ChartsPage() {
   const [radarCountry, setRadarCountry] = useState('');
   const countriesInData = [...new Set(filteredData.map(d => d.country))];
 
-  // 1. Bar Chart — Топ-10 по случаям
   const barTop10 = useMemo(() => {
     const map = new Map<string, number>();
     filteredData.forEach(d => map.set(d.country, (map.get(d.country) || 0) + d.cases));
     return Array.from(map.entries()).map(([country, cases]) => ({ country, cases })).sort((a, b) => b.cases - a.cases).slice(0, 10);
   }, [filteredData]);
 
-  // 2. Line Chart — Динамика заболеваемости
   const lineData = useMemo(() => {
     const byYear = new Map<number, Map<string, number>>();
     filteredData.forEach(d => {
@@ -39,14 +38,12 @@ export default function ChartsPage() {
     }).sort((a, b) => a.year - b.year);
   }, [filteredData, countriesInData]);
 
-  // 3. Pie Chart — Распределение по регионам
   const pieData = useMemo(() => {
     const map = new Map<string, number>();
     filteredData.forEach(d => map.set(d.region, (map.get(d.region) || 0) + d.cases));
     return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
   }, [filteredData]);
 
-  // 4. Scatter — ВВП vs успешность лечения
   const scatterGdp = useMemo(() => {
     const map = new Map<string, { gdp: number[]; ts: number[] }>();
     filteredData.forEach(d => {
@@ -60,7 +57,6 @@ export default function ChartsPage() {
     }));
   }, [filteredData]);
 
-  // 5. Histogram — Распределение вакцинации
   const histData = useMemo(() => {
     const bins = [
       { range: '<50%', min: 0, max: 50, count: 0 },
@@ -77,7 +73,6 @@ export default function ChartsPage() {
     return bins;
   }, [filteredData]);
 
-  // 6. Box Plot (simplified as bar with min/median/max)
   const boxPlotData = useMemo(() => {
     const byIncome = new Map<string, number[]>();
     filteredData.forEach(d => {
@@ -96,15 +91,13 @@ export default function ChartsPage() {
     });
   }, [filteredData]);
 
-  // 7. Heatmap — корреляции
   const correlationData = useMemo(() => {
     const fields = [
+      { key: 'doctorsPer100k' as const, label: 'Врачи' },
+      { key: 'treatmentSuccess' as const, label: 'Успешность лечения' },
       { key: 'vaccinationCoverage' as const, label: 'Вакцинация' },
-      { key: 'healthcareAccess' as const, label: 'Доступ' },
-      { key: 'smoking' as const, label: 'Курение' },
-      { key: 'malnutrition' as const, label: 'Недоедание' },
-      { key: 'treatmentSuccess' as const, label: 'Лечение' },
-      { key: 'mortalityPer100k' as const, label: 'Смертн./100тыс' },
+      { key: 'mortalityPer100k' as const, label: 'Смертность' },
+      { key: 'healthcareAccess' as const, label: 'Доступ к медицине' },
     ];
     const corr = (a: number[], b: number[]) => {
       const n = a.length; const ma = a.reduce((s, v) => s + v, 0) / n; const mb = b.reduce((s, v) => s + v, 0) / n;
@@ -120,23 +113,21 @@ export default function ChartsPage() {
     return { matrix, labels: fields.map(f => f.label) };
   }, [filteredData]);
 
-  // 8. Bubble — Вакцинация vs Смертность (размер = население)
   const bubbleData = useMemo(() => {
     const map = new Map<string, { vacc: number[]; mort: number[]; pop: number[] }>();
     filteredData.forEach(d => {
       if (!map.has(d.country)) map.set(d.country, { vacc: [], mort: [], pop: [] });
       const c = map.get(d.country)!;
-      c.vacc.push(d.vaccinationCoverage); c.mort.push(d.mortalityPer100k); c.pop.push(d.population);
+      c.vacc.push(d.vaccinationCoverage); c.mort.push(d.deaths); c.pop.push(d.population);
     });
     return Array.from(map.entries()).map(([country, v]) => ({
       country,
       vaccination: +(v.vacc.reduce((a, b) => a + b, 0) / v.vacc.length).toFixed(1),
-      mortality: +(v.mort.reduce((a, b) => a + b, 0) / v.mort.length).toFixed(2),
+      deaths: Math.round(v.mort.reduce((a, b) => a + b, 0) / v.mort.length),
       population: Math.round(v.pop.reduce((a, b) => a + b, 0) / v.pop.length),
     }));
   }, [filteredData]);
 
-  // 9. Area Chart — Заболеваемость по регионам по годам
   const areaData = useMemo(() => {
     const regs = [...new Set(filteredData.map(d => d.region))];
     const byYear = new Map<number, Map<string, number>>();
@@ -151,7 +142,6 @@ export default function ChartsPage() {
     }).sort((a, b) => a.year - b.year) };
   }, [filteredData]);
 
-  // 10. Radar — Профиль страны
   const radarData = useMemo(() => {
     const c = radarCountry || countriesInData[0];
     if (!c) return [];
@@ -159,16 +149,14 @@ export default function ChartsPage() {
     if (!recs.length) return [];
     const avg = (fn: (d: typeof recs[0]) => number) => +(recs.reduce((s, d) => s + fn(d), 0) / recs.length).toFixed(1);
     return [
-      { metric: 'Вакцинация', value: avg(d => d.vaccinationCoverage) },
-      { metric: 'Лечение', value: avg(d => d.treatmentSuccess) },
-      { metric: 'Доступ', value: avg(d => d.healthcareAccess) },
-      { metric: 'Профилактика', value: avg(d => d.preventionIndex) },
       { metric: 'Скрининг крови', value: avg(d => d.bloodScreening) },
-      { metric: 'Безоп. инъекции', value: avg(d => d.safeInjections) },
+      { metric: 'Безопасные инъекции', value: avg(d => d.safeInjections) },
+      { metric: 'Успешность лечения', value: avg(d => d.treatmentSuccess) },
+      { metric: 'Охват вакцинацией', value: avg(d => d.vaccinationCoverage) },
+      { metric: 'Доступ к медицине', value: avg(d => d.healthcareAccess) },
     ];
   }, [filteredData, radarCountry, countriesInData]);
 
-  // 11. Treemap — Иерархия по случаям
   const treemapData = useMemo(() => {
     const map = new Map<string, number>();
     filteredData.forEach(d => map.set(d.country, (map.get(d.country) || 0) + d.cases));
@@ -208,12 +196,16 @@ export default function ChartsPage() {
       {/* Row 1: Bar + Line */}
       <div className="grid grid-cols-2 gap-4">
         <div className="chart-container">
-          <h3 className="section-title mb-3">1. Топ-10 стран по случаям</h3>
+          <h3 className="section-title mb-3">1. Топ-10 стран по количеству случаев</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={barTop10}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="country" fontSize={10} angle={-15} textAnchor="end" height={45} />
-              <YAxis fontSize={11} tickFormatter={fmtNum} />
+              <XAxis dataKey="country" fontSize={10} angle={-15} textAnchor="end" height={45}>
+                <Label value="Страна" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis fontSize={11} tickFormatter={fmtNum}>
+                <Label value="Количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Bar dataKey="cases" name="Случаи" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]}
                 onClick={(d) => setDetailCountry(d.country)} cursor="pointer" />
@@ -225,8 +217,12 @@ export default function ChartsPage() {
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={lineData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="year" fontSize={12} />
-              <YAxis fontSize={11} tickFormatter={fmtNum} />
+              <XAxis dataKey="year" fontSize={12}>
+                <Label value="Год" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis fontSize={11} tickFormatter={fmtNum}>
+                <Label value="Количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Legend />
               {countriesInData.map((c, i) => (
@@ -241,6 +237,7 @@ export default function ChartsPage() {
       <div className="grid grid-cols-2 gap-4">
         <div className="chart-container">
           <h3 className="section-title mb-3">3. Распределение по регионам</h3>
+          <p className="text-xs text-muted-foreground mb-1">Регионы — Доля случаев (%)</p>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={110} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
@@ -255,8 +252,12 @@ export default function ChartsPage() {
           <ResponsiveContainer width="100%" height={300}>
             <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="gdp" name="ВВП на душу ($)" fontSize={11} />
-              <YAxis dataKey="treatment" name="Успешность (%)" domain={[60, 100]} fontSize={11} />
+              <XAxis dataKey="gdp" name="ВВП на душу (USD)" fontSize={11}>
+                <Label value="ВВП на душу (USD)" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis dataKey="treatment" name="Успешность лечения (%)" domain={[60, 100]} fontSize={11}>
+                <Label value="Успешность лечения (%)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <ZAxis range={[60, 60]} />
               <Tooltip cursor={{ strokeDasharray: '3 3' }} />
               <Scatter data={scatterGdp} fill="hsl(var(--primary))">
@@ -274,8 +275,12 @@ export default function ChartsPage() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={histData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="range" fontSize={11} />
-              <YAxis fontSize={11} />
+              <XAxis dataKey="range" fontSize={11}>
+                <Label value="Охват вакцинацией (%)" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis fontSize={11}>
+                <Label value="Количество стран" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <Tooltip />
               <Bar dataKey="count" name="Кол-во записей" fill="hsl(var(--accent))" radius={[3, 3, 0, 0]} />
             </BarChart>
@@ -286,8 +291,12 @@ export default function ChartsPage() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={boxPlotData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="income" fontSize={11} />
-              <YAxis fontSize={11} tickFormatter={fmtNum} />
+              <XAxis dataKey="income" fontSize={11}>
+                <Label value="Уровень дохода" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis fontSize={11} tickFormatter={fmtNum}>
+                <Label value="Количество осложненных случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={11} />
+              </YAxis>
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Legend />
               <Bar dataKey="min" fill="#E74C3C" name="Мин" radius={[2, 2, 0, 0]} />
@@ -302,6 +311,7 @@ export default function ChartsPage() {
       <div className="grid grid-cols-2 gap-4">
         <div className="chart-container">
           <h3 className="section-title mb-3">7. Корреляция факторов</h3>
+          <p className="text-xs text-muted-foreground mb-1">Врачи, Успешность лечения, Вакцинация, Смертность, Доступ к медицине</p>
           <div className="overflow-x-auto">
             <table className="mx-auto border-collapse">
               <thead>
@@ -329,12 +339,17 @@ export default function ChartsPage() {
           </div>
         </div>
         <div className="chart-container">
-          <h3 className="section-title mb-3">8. Вакцинация vs Смертность (размер = население)</h3>
+          <h3 className="section-title mb-3">8. Вакцинация vs Смертность</h3>
+          <p className="text-xs text-muted-foreground mb-1">Размер пузыря = Население</p>
           <ResponsiveContainer width="100%" height={300}>
             <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="vaccination" name="Вакцинация (%)" fontSize={11} />
-              <YAxis dataKey="mortality" name="Смертн./100тыс" fontSize={11} />
+              <XAxis dataKey="vaccination" name="Охват вакцинацией (%)" fontSize={11}>
+                <Label value="Охват вакцинацией (%)" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis dataKey="deaths" name="Смерти" fontSize={11} tickFormatter={fmtNum}>
+                <Label value="Смерти" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
+              </YAxis>
               <ZAxis dataKey="population" range={[50, 800]} name="Население" />
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Scatter data={bubbleData} fill="hsl(var(--primary))">
@@ -348,12 +363,16 @@ export default function ChartsPage() {
       {/* Row 5: Area + Radar */}
       <div className="grid grid-cols-2 gap-4">
         <div className="chart-container">
-          <h3 className="section-title mb-3">9. Заболеваемость по регионам (Area)</h3>
+          <h3 className="section-title mb-3">9. Объем заболеваемости по регионам</h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={areaData.data}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="year" fontSize={12} />
-              <YAxis fontSize={11} tickFormatter={fmtNum} />
+              <XAxis dataKey="year" fontSize={12}>
+                <Label value="Год" position="insideBottom" offset={-3} fontSize={12} />
+              </XAxis>
+              <YAxis fontSize={11} tickFormatter={fmtNum}>
+                <Label value="Суммарное количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={11} />
+              </YAxis>
               <Tooltip formatter={(v: number) => v.toLocaleString()} />
               <Legend />
               {areaData.regs.map((r, i) => (
@@ -388,12 +407,15 @@ export default function ChartsPage() {
       {/* Row 6: Treemap */}
       <div className="chart-container">
         <h3 className="section-title mb-3">11. Иерархия стран по числу случаев (Treemap)</h3>
+        <p className="text-xs text-muted-foreground mb-1">Страна — Количество случаев</p>
         <ResponsiveContainer width="100%" height={300}>
           <Treemap data={treemapData} dataKey="size" nameKey="name" content={<CustomTreemapContent />}>
             <Tooltip formatter={(v: number) => v.toLocaleString()} />
           </Treemap>
         </ResponsiveContainer>
       </div>
+
+      <Footer />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useFilters } from '@/contexts/FilterContext';
 import { FilterBar } from '@/components/FilterBar';
+import { Footer } from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { FileDown, FileText, ArrowUpDown } from 'lucide-react';
@@ -87,7 +88,6 @@ function SortableTable({ headers, rows, defaultSortCol, title }: {
 export default function TablesPage() {
   const { filteredData } = useFilters();
 
-  // Table 1: Economic - aggregated by country
   const table1 = useMemo(() => {
     const map = new Map<string, typeof filteredData>();
     filteredData.forEach(d => {
@@ -98,69 +98,40 @@ export default function TablesPage() {
       const n = recs.length;
       const avg = (fn: (d: typeof recs[0]) => number) => +(recs.reduce((s, d) => s + fn(d), 0) / n).toFixed(2);
       return {
-        country,
-        region: recs[0].region,
-        incomeLevel: recs[0].incomeLevel,
-        economicIndex: avg(d => d.economicIndex),
-        healthExpenditure: avg(d => d.healthExpenditure),
+        country, region: recs[0].region, incomeLevel: recs[0].incomeLevel,
+        economicIndex: avg(d => d.economicIndex), healthExpenditure: avg(d => d.healthExpenditure),
         populationMln: +(avg(d => d.population) / 1000000).toFixed(1),
-        status: '',
-        _statusVal: avg(d => d.economicIndex),
-        _thresholdLow: 2000,
-        _thresholdHigh: 8000,
+        status: '', _statusVal: avg(d => d.economicIndex), _thresholdLow: 2000, _thresholdHigh: 8000,
       } as RowData;
     });
   }, [filteredData]);
 
-  // Table 2: Epidemiology - per country per year
   const table2 = useMemo(() => {
     return filteredData.map(d => ({
-      country: d.country,
-      year: d.year,
-      incidencePer100k: d.incidencePer100k,
-      mortalityPer100k: d.mortalityPer100k,
-      caseFatalityPct: d.caseFatalityPct,
+      country: d.country, year: d.year, incidencePer100k: d.incidencePer100k,
+      mortalityPer100k: d.mortalityPer100k, caseFatalityPct: d.caseFatalityPct,
       chronicPct: +((d.complicatedCases / d.cases) * 100).toFixed(2),
-      status: '',
-      _statusVal: 100 - d.mortalityPer100k,
-      _thresholdLow: 95,
-      _thresholdHigh: 99,
+      status: '', _statusVal: 100 - d.mortalityPer100k, _thresholdLow: 95, _thresholdHigh: 99,
     } as RowData));
   }, [filteredData]);
 
-  // Table 3: Healthcare - per country per year
   const table3 = useMemo(() => {
     return filteredData.map(d => {
       const infraIndex = +(d.doctorsPer100k * 10 + d.facilitiesPerMln * 50).toFixed(2);
       const accessIndex = +(d.healthcareAccess * 0.5 + d.treatmentSuccess * 0.5).toFixed(2);
       return {
-        country: d.country,
-        year: d.year,
-        infraIndex,
-        accessIndex,
-        vaccinationCoverage: d.vaccinationCoverage,
-        treatmentSuccess: d.treatmentSuccess,
-        status: '',
-        _statusVal: d.treatmentSuccess,
-        _thresholdLow: 70,
-        _thresholdHigh: 85,
+        country: d.country, year: d.year, infraIndex, accessIndex,
+        vaccinationCoverage: d.vaccinationCoverage, treatmentSuccess: d.treatmentSuccess,
+        status: '', _statusVal: d.treatmentSuccess, _thresholdLow: 70, _thresholdHigh: 85,
       } as RowData;
     });
   }, [filteredData]);
 
-  // Table 4: Risk factors - per country per year
   const table4 = useMemo(() => {
     return filteredData.map(d => ({
-      country: d.country,
-      year: d.year,
-      riskIndex: d.riskIndex,
-      preventionIndex: d.preventionIndex,
-      smoking: d.smoking,
-      malnutrition: d.malnutrition,
-      status: '',
-      _statusVal: d.preventionIndex,
-      _thresholdLow: 75,
-      _thresholdHigh: 90,
+      country: d.country, year: d.year, riskIndex: d.riskIndex, preventionIndex: d.preventionIndex,
+      smoking: d.smoking, malnutrition: d.malnutrition,
+      status: '', _statusVal: d.preventionIndex, _thresholdLow: 75, _thresholdHigh: 90,
     } as RowData));
   }, [filteredData]);
 
@@ -204,6 +175,7 @@ export default function TablesPage() {
           ]} rows={table4} />
         </TabsContent>
       </Tabs>
+      <Footer />
     </div>
   );
 }
