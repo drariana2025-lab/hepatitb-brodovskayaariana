@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { FilterProvider } from "@/contexts/FilterContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import MainDashboard from "@/pages/MainDashboard";
 import VaccinationPage from "@/pages/VaccinationPage";
 import HealthcarePage from "@/pages/HealthcarePage";
@@ -30,33 +32,38 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <FilterProvider>
-        <BrowserRouter>
-          <SpaRedirectHandler />
-          <SidebarProvider>
-            <div className="min-h-screen flex w-full">
-              <AppSidebar />
-              <div className="flex-1 flex flex-col">
-                <header className="h-12 flex items-center border-b bg-card px-2">
-                  <SidebarTrigger />
-                  <span className="ml-3 text-sm font-medium text-muted-foreground">Hepatitis B Analytics</span>
-                </header>
-                <main className="flex-1 p-6 overflow-auto">
-                  <Routes>
-                    <Route path="/" element={<MainDashboard />} />
-                    <Route path="/vaccination" element={<VaccinationPage />} />
-                    <Route path="/healthcare" element={<HealthcarePage />} />
-                    <Route path="/risk-factors" element={<RiskFactorsPage />} />
-                    <Route path="/tables" element={<TablesPage />} />
-                    <Route path="/charts" element={<ChartsPage />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
+      <ThemeProvider>
+        <FilterProvider>
+          <BrowserRouter>
+            <SpaRedirectHandler />
+            <SidebarProvider>
+              <div className="min-h-screen flex w-full">
+                <AppSidebar />
+                <div className="flex-1 flex flex-col min-w-0">
+                  <header className="h-12 flex items-center border-b bg-card px-2">
+                    <SidebarTrigger />
+                    <span className="ml-3 text-sm font-medium text-muted-foreground hidden sm:inline">Hepatitis B Analytics</span>
+                    <div className="ml-auto">
+                      <ThemeToggle />
+                    </div>
+                  </header>
+                  <main className="flex-1 p-3 sm:p-6 overflow-auto">
+                    <Routes>
+                      <Route path="/" element={<MainDashboard />} />
+                      <Route path="/vaccination" element={<VaccinationPage />} />
+                      <Route path="/healthcare" element={<HealthcarePage />} />
+                      <Route path="/risk-factors" element={<RiskFactorsPage />} />
+                      <Route path="/tables" element={<TablesPage />} />
+                      <Route path="/charts" element={<ChartsPage />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </main>
+                </div>
               </div>
-            </div>
-          </SidebarProvider>
-        </BrowserRouter>
-      </FilterProvider>
+            </SidebarProvider>
+          </BrowserRouter>
+        </FilterProvider>
+      </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

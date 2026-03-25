@@ -4,6 +4,7 @@ import { FilterBar } from '@/components/FilterBar';
 import { Footer } from '@/components/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { FileDown, FileText, ArrowUpDown } from 'lucide-react';
 import { exportCSV, exportPDF } from '@/lib/exportUtils';
 
@@ -44,18 +45,19 @@ function SortableTable({ headers, rows, defaultSortCol, title }: {
     else { setSortKey(key); setSortDir('desc'); }
   };
 
-  const handleExportCSV = () => {
-    exportCSV(headers.map(h => h.label), sorted.map(r => headers.map(h => r[h.key])), title);
-  };
-  const handleExportPDF = () => {
-    exportPDF(title, headers.map(h => h.label), sorted.map(r => headers.map(h => r[h.key])), title);
-  };
-
   return (
     <div>
       <div className="flex justify-end gap-2 mb-3">
-        <Button variant="outline" size="sm" onClick={handleExportCSV}><FileDown className="h-4 w-4 mr-1" />CSV</Button>
-        <Button variant="outline" size="sm" onClick={handleExportPDF}><FileText className="h-4 w-4 mr-1" />PDF</Button>
+        <Tooltip><TooltipTrigger asChild>
+          <Button variant="outline" size="sm" onClick={() => exportCSV(headers.map(h => h.label), sorted.map(r => headers.map(h => r[h.key])), title)}>
+            <FileDown className="h-4 w-4 mr-1" />CSV
+          </Button>
+        </TooltipTrigger><TooltipContent>Скачать таблицу в CSV</TooltipContent></Tooltip>
+        <Tooltip><TooltipTrigger asChild>
+          <Button variant="outline" size="sm" onClick={() => exportPDF(title, headers.map(h => h.label), sorted.map(r => headers.map(h => r[h.key])), title)}>
+            <FileText className="h-4 w-4 mr-1" />PDF
+          </Button>
+        </TooltipTrigger><TooltipContent>Скачать таблицу в PDF</TooltipContent></Tooltip>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -90,10 +92,7 @@ export default function TablesPage() {
 
   const table1 = useMemo(() => {
     const map = new Map<string, typeof filteredData>();
-    filteredData.forEach(d => {
-      if (!map.has(d.country)) map.set(d.country, []);
-      map.get(d.country)!.push(d);
-    });
+    filteredData.forEach(d => { if (!map.has(d.country)) map.set(d.country, []); map.get(d.country)!.push(d); });
     return Array.from(map.entries()).map(([country, recs]) => {
       const n = recs.length;
       const avg = (fn: (d: typeof recs[0]) => number) => +(recs.reduce((s, d) => s + fn(d), 0) / n).toFixed(2);
@@ -106,41 +105,35 @@ export default function TablesPage() {
     });
   }, [filteredData]);
 
-  const table2 = useMemo(() => {
-    return filteredData.map(d => ({
-      country: d.country, year: d.year, incidencePer100k: d.incidencePer100k,
-      mortalityPer100k: d.mortalityPer100k, caseFatalityPct: d.caseFatalityPct,
-      chronicPct: +((d.complicatedCases / d.cases) * 100).toFixed(2),
-      status: '', _statusVal: 100 - d.mortalityPer100k, _thresholdLow: 95, _thresholdHigh: 99,
-    } as RowData));
-  }, [filteredData]);
+  const table2 = useMemo(() => filteredData.map(d => ({
+    country: d.country, year: d.year, incidencePer100k: d.incidencePer100k,
+    mortalityPer100k: d.mortalityPer100k, caseFatalityPct: d.caseFatalityPct,
+    chronicPct: +((d.complicatedCases / d.cases) * 100).toFixed(2),
+    status: '', _statusVal: 100 - d.mortalityPer100k, _thresholdLow: 95, _thresholdHigh: 99,
+  } as RowData)), [filteredData]);
 
-  const table3 = useMemo(() => {
-    return filteredData.map(d => {
-      const infraIndex = +(d.doctorsPer100k * 10 + d.facilitiesPerMln * 50).toFixed(2);
-      const accessIndex = +(d.healthcareAccess * 0.5 + d.treatmentSuccess * 0.5).toFixed(2);
-      return {
-        country: d.country, year: d.year, infraIndex, accessIndex,
-        vaccinationCoverage: d.vaccinationCoverage, treatmentSuccess: d.treatmentSuccess,
-        status: '', _statusVal: d.treatmentSuccess, _thresholdLow: 70, _thresholdHigh: 85,
-      } as RowData;
-    });
-  }, [filteredData]);
+  const table3 = useMemo(() => filteredData.map(d => {
+    const infraIndex = +(d.doctorsPer100k * 10 + d.facilitiesPerMln * 50).toFixed(2);
+    const accessIndex = +(d.healthcareAccess * 0.5 + d.treatmentSuccess * 0.5).toFixed(2);
+    return {
+      country: d.country, year: d.year, infraIndex, accessIndex,
+      vaccinationCoverage: d.vaccinationCoverage, treatmentSuccess: d.treatmentSuccess,
+      status: '', _statusVal: d.treatmentSuccess, _thresholdLow: 70, _thresholdHigh: 85,
+    } as RowData;
+  }), [filteredData]);
 
-  const table4 = useMemo(() => {
-    return filteredData.map(d => ({
-      country: d.country, year: d.year, riskIndex: d.riskIndex, preventionIndex: d.preventionIndex,
-      smoking: d.smoking, malnutrition: d.malnutrition,
-      status: '', _statusVal: d.preventionIndex, _thresholdLow: 75, _thresholdHigh: 90,
-    } as RowData));
-  }, [filteredData]);
+  const table4 = useMemo(() => filteredData.map(d => ({
+    country: d.country, year: d.year, riskIndex: d.riskIndex, preventionIndex: d.preventionIndex,
+    smoking: d.smoking, malnutrition: d.malnutrition,
+    status: '', _statusVal: d.preventionIndex, _thresholdLow: 75, _thresholdHigh: 90,
+  } as RowData)), [filteredData]);
 
   return (
     <div className="space-y-5 animate-fade-in">
       <h1 className="page-title">Аналитические таблицы</h1>
       <FilterBar />
       <Tabs defaultValue="economic" className="chart-container">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="economic">Экономический потенциал</TabsTrigger>
           <TabsTrigger value="epidemiology">Эпидемиология</TabsTrigger>
           <TabsTrigger value="healthcare">Медсистема</TabsTrigger>

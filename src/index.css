@@ -46,6 +46,46 @@
     --chart-orange: 38 92% 50%;
     --chart-purple: 270 50% 55%;
     --chart-teal: 180 45% 45%;
+    --chart-text: 210 30% 12%;
+    --chart-grid: 210 18% 90%;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 92%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 92%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 92%;
+    --primary: 200 56% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 22%;
+    --secondary-foreground: 200 30% 80%;
+    --muted: 217 33% 20%;
+    --muted-foreground: 215 20% 60%;
+    --accent: 152 55% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 200 56% 50%;
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 200 15% 85%;
+    --sidebar-primary: 200 56% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 200 15% 90%;
+    --sidebar-border: 217 33% 22%;
+    --sidebar-ring: 200 56% 50%;
+    --success: 152 55% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --danger: 0 72% 55%;
+    --danger-foreground: 0 0% 100%;
+    --chart-text: 210 40% 85%;
+    --chart-grid: 217 33% 30%;
   }
 }
 
@@ -67,12 +107,27 @@
     @apply bg-card rounded-xl border shadow-sm p-5;
   }
   .filter-bar {
-    @apply bg-card rounded-xl border shadow-sm p-4 flex flex-wrap gap-3 items-center;
+    @apply bg-card rounded-xl border shadow-sm p-3 sm:p-4 flex flex-wrap gap-2 sm:gap-3 items-center;
   }
   .page-title {
-    @apply text-2xl font-semibold tracking-tight text-foreground;
+    @apply text-xl sm:text-2xl font-semibold tracking-tight text-foreground;
   }
   .section-title {
-    @apply text-lg font-medium text-foreground;
+    @apply text-base sm:text-lg font-medium text-foreground;
   }
+  .chart-scroll-wrapper {
+    @apply overflow-x-auto -mx-2 px-2;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid hsl(var(--border));
+  border-top-color: hsl(var(--primary));
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
