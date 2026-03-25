@@ -8,6 +8,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Label,
 } from 'recharts';
 
+const cts = { backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' };
+const tickStyle = { fill: 'hsl(var(--chart-text))' };
+
 export default function RiskFactorsPage() {
   const { filteredData } = useFilters();
 
@@ -39,9 +42,7 @@ export default function RiskFactorsPage() {
       c.gdp += d.gdpPerCapita; c.cases += d.cases; c.count++;
     });
     return Array.from(byCountry.entries()).map(([country, v]) => ({
-      country,
-      gdp: Math.round(v.gdp / v.count),
-      cases: Math.round(v.cases / v.count),
+      country, gdp: Math.round(v.gdp / v.count), cases: Math.round(v.cases / v.count),
     })).sort((a, b) => a.gdp - b.gdp);
   }, [filteredData]);
 
@@ -55,24 +56,16 @@ export default function RiskFactorsPage() {
       { key: 'treatmentSuccess' as const, label: 'Успешность лечения' },
     ];
     const corr = (a: number[], b: number[]) => {
-      const n = a.length;
-      const ma = a.reduce((s, v) => s + v, 0) / n;
-      const mb = b.reduce((s, v) => s + v, 0) / n;
+      const n = a.length; const ma = a.reduce((s, v) => s + v, 0) / n; const mb = b.reduce((s, v) => s + v, 0) / n;
       let num = 0, da = 0, db = 0;
-      for (let i = 0; i < n; i++) {
-        num += (a[i] - ma) * (b[i] - mb);
-        da += (a[i] - ma) ** 2;
-        db += (b[i] - mb) ** 2;
-      }
+      for (let i = 0; i < n; i++) { num += (a[i] - ma) * (b[i] - mb); da += (a[i] - ma) ** 2; db += (b[i] - mb) ** 2; }
       return da && db ? +(num / Math.sqrt(da * db)).toFixed(2) : 0;
     };
     const values = fields.map(f => filteredData.map(d => d[f.key]));
     const result: { row: string; col: string; value: number }[] = [];
-    for (let i = 0; i < fields.length; i++) {
-      for (let j = 0; j < fields.length; j++) {
+    for (let i = 0; i < fields.length; i++)
+      for (let j = 0; j < fields.length; j++)
         result.push({ row: fields[i].label, col: fields[j].label, value: corr(values[i], values[j]) });
-      }
-    }
     return { matrix: result, labels: fields.map(f => f.label) };
   }, [filteredData]);
 
@@ -90,41 +83,45 @@ export default function RiskFactorsPage() {
     <div className="space-y-5 animate-fade-in">
       <h1 className="page-title">Факторы риска</h1>
       <FilterBar />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="chart-container">
           <h3 className="section-title mb-3">Radar: Курение, Недоедание, Урбанизация</h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <RadarChart data={radarData}>
-              <PolarGrid stroke="hsl(var(--border))" />
-              <PolarAngleAxis dataKey="metric" fontSize={12} />
-              <PolarRadiusAxis fontSize={10} />
-              {countriesInData.map((c, i) => (
-                <Radar key={c} name={c} dataKey={c} stroke={COLORS[i % COLORS.length]} fill={COLORS[i % COLORS.length]} fillOpacity={0.15} />
-              ))}
-              <Legend />
-            </RadarChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[350px]">
+            <ResponsiveContainer width="100%" height={350}>
+              <RadarChart data={radarData}>
+                <PolarGrid stroke="hsl(var(--chart-grid))" />
+                <PolarAngleAxis dataKey="metric" fontSize={12} tick={tickStyle} />
+                <PolarRadiusAxis fontSize={10} tick={tickStyle} />
+                {countriesInData.map((c, i) => (
+                  <Radar key={c} name={c} dataKey={c} stroke={COLORS[i % COLORS.length]} fill={COLORS[i % COLORS.length]} fillOpacity={0.15} />
+                ))}
+                <Legend />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
         <div className="chart-container">
           <h3 className="section-title mb-3">ВВП на душу vs Заболеваемость</h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={gdpVsCases}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="country" fontSize={10} angle={-20} textAnchor="end" height={50}>
-                <Label value="Страна" position="insideBottom" offset={-3} fontSize={12} />
-              </XAxis>
-              <YAxis yAxisId="left" fontSize={11} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}>
-                <Label value="ВВП на душу (USD)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
-              </YAxis>
-              <YAxis yAxisId="right" orientation="right" fontSize={11} tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}>
-                <Label value="Случаи (среднее)" angle={90} position="insideRight" style={{ textAnchor: 'middle' }} fontSize={12} />
-              </YAxis>
-              <Tooltip formatter={(v: number) => v.toLocaleString()} />
-              <Legend />
-              <Bar yAxisId="left" dataKey="gdp" fill="#2C7DA0" name="ВВП на душу ($)" radius={[2, 2, 0, 0]} />
-              <Bar yAxisId="right" dataKey="cases" fill="#E74C3C" name="Случаи (среднее)" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[400px]">
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={gdpVsCases}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--chart-grid))" />
+                <XAxis dataKey="country" fontSize={10} angle={-20} textAnchor="end" height={50} tick={tickStyle}>
+                  <Label value="Страна" position="insideBottom" offset={-3} fontSize={12} fill="hsl(var(--chart-text))" />
+                </XAxis>
+                <YAxis yAxisId="left" fontSize={11} tick={tickStyle} tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}>
+                  <Label value="ВВП на душу (USD)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={12} />
+                </YAxis>
+                <YAxis yAxisId="right" orientation="right" fontSize={11} tick={tickStyle} tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}>
+                  <Label value="Случаи (среднее)" angle={90} position="insideRight" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={12} />
+                </YAxis>
+                <Tooltip formatter={(v: number) => v.toLocaleString()} contentStyle={cts} />
+                <Legend />
+                <Bar yAxisId="left" dataKey="gdp" fill="#2C7DA0" name="ВВП на душу ($)" radius={[2, 2, 0, 0]} />
+                <Bar yAxisId="right" dataKey="cases" fill="#E74C3C" name="Случаи (среднее)" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
       </div>
       <div className="chart-container">
@@ -145,12 +142,8 @@ export default function RiskFactorsPage() {
                     const val = correlationData.matrix.find(m => m.row === row && m.col === col)?.value ?? 0;
                     return (
                       <td key={col} className="p-2 text-center text-xs font-mono font-medium" style={{
-                        backgroundColor: getHeatColor(val),
-                        color: Math.abs(val) > 0.5 ? '#fff' : '#333',
-                        minWidth: '60px',
-                      }}>
-                        {val}
-                      </td>
+                        backgroundColor: getHeatColor(val), color: Math.abs(val) > 0.5 ? '#fff' : '#333', minWidth: '60px',
+                      }}>{val}</td>
                     );
                   })}
                 </tr>

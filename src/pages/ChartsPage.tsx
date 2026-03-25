@@ -14,6 +14,9 @@ import {
   Treemap,
 } from 'recharts';
 
+const cts = { backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' };
+const tickStyle = { fill: 'hsl(var(--chart-text))' };
+
 export default function ChartsPage() {
   const { filteredData, setDetailCountry } = useFilters();
   const [radarCountry, setRadarCountry] = useState('');
@@ -59,35 +62,20 @@ export default function ChartsPage() {
 
   const histData = useMemo(() => {
     const bins = [
-      { range: '<50%', min: 0, max: 50, count: 0 },
-      { range: '50-60%', min: 50, max: 60, count: 0 },
-      { range: '60-70%', min: 60, max: 70, count: 0 },
-      { range: '70-80%', min: 70, max: 80, count: 0 },
-      { range: '80-90%', min: 80, max: 90, count: 0 },
-      { range: '≥90%', min: 90, max: 101, count: 0 },
+      { range: '<50%', min: 0, max: 50, count: 0 }, { range: '50-60%', min: 50, max: 60, count: 0 },
+      { range: '60-70%', min: 60, max: 70, count: 0 }, { range: '70-80%', min: 70, max: 80, count: 0 },
+      { range: '80-90%', min: 80, max: 90, count: 0 }, { range: '≥90%', min: 90, max: 101, count: 0 },
     ];
-    filteredData.forEach(d => {
-      const b = bins.find(b => d.vaccinationCoverage >= b.min && d.vaccinationCoverage < b.max);
-      if (b) b.count++;
-    });
+    filteredData.forEach(d => { const b = bins.find(b => d.vaccinationCoverage >= b.min && d.vaccinationCoverage < b.max); if (b) b.count++; });
     return bins;
   }, [filteredData]);
 
   const boxPlotData = useMemo(() => {
     const byIncome = new Map<string, number[]>();
-    filteredData.forEach(d => {
-      if (!byIncome.has(d.incomeLevel)) byIncome.set(d.incomeLevel, []);
-      byIncome.get(d.incomeLevel)!.push(d.complicatedCases);
-    });
+    filteredData.forEach(d => { if (!byIncome.has(d.incomeLevel)) byIncome.set(d.incomeLevel, []); byIncome.get(d.incomeLevel)!.push(d.complicatedCases); });
     return Array.from(byIncome.entries()).map(([income, vals]) => {
       const sorted = [...vals].sort((a, b) => a - b);
-      return {
-        income,
-        min: sorted[0],
-        median: sorted[Math.floor(sorted.length / 2)],
-        max: sorted[sorted.length - 1],
-        avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
-      };
+      return { income, min: sorted[0], median: sorted[Math.floor(sorted.length / 2)], max: sorted[sorted.length - 1], avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) };
     });
   }, [filteredData]);
 
@@ -121,8 +109,7 @@ export default function ChartsPage() {
       c.vacc.push(d.vaccinationCoverage); c.mort.push(d.deaths); c.pop.push(d.population);
     });
     return Array.from(map.entries()).map(([country, v]) => ({
-      country,
-      vaccination: +(v.vacc.reduce((a, b) => a + b, 0) / v.vacc.length).toFixed(1),
+      country, vaccination: +(v.vacc.reduce((a, b) => a + b, 0) / v.vacc.length).toFixed(1),
       deaths: Math.round(v.mort.reduce((a, b) => a + b, 0) / v.mort.length),
       population: Math.round(v.pop.reduce((a, b) => a + b, 0) / v.pop.length),
     }));
@@ -193,48 +180,50 @@ export default function ChartsPage() {
       <h1 className="page-title">Визуализация — 11 типов графиков</h1>
       <FilterBar />
 
-      {/* Row 1: Bar + Line */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="chart-container">
           <h3 className="section-title mb-3">1. Топ-10 стран по количеству случаев</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={barTop10}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="country" fontSize={10} angle={-15} textAnchor="end" height={45}>
-                <Label value="Страна" position="insideBottom" offset={-3} fontSize={12} />
-              </XAxis>
-              <YAxis fontSize={11} tickFormatter={fmtNum}>
-                <Label value="Количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
-              </YAxis>
-              <Tooltip formatter={(v: number) => v.toLocaleString()} />
-              <Bar dataKey="cases" name="Случаи" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]}
-                onClick={(d) => setDetailCountry(d.country)} cursor="pointer" />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[450px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={barTop10}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--chart-grid))" />
+                <XAxis dataKey="country" fontSize={10} angle={-15} textAnchor="end" height={45} tick={tickStyle}>
+                  <Label value="Страна" position="insideBottom" offset={-3} fontSize={12} fill="hsl(var(--chart-text))" />
+                </XAxis>
+                <YAxis fontSize={11} tickFormatter={fmtNum} tick={tickStyle}>
+                  <Label value="Количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={12} />
+                </YAxis>
+                <Tooltip formatter={(v: number) => v.toLocaleString()} contentStyle={cts} />
+                <Bar dataKey="cases" name="Случаи" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]}
+                  onClick={(d) => setDetailCountry(d.country)} cursor="pointer" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
         <div className="chart-container">
           <h3 className="section-title mb-3">2. Динамика заболеваемости по годам</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={lineData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="year" fontSize={12}>
-                <Label value="Год" position="insideBottom" offset={-3} fontSize={12} />
-              </XAxis>
-              <YAxis fontSize={11} tickFormatter={fmtNum}>
-                <Label value="Количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
-              </YAxis>
-              <Tooltip formatter={(v: number) => v.toLocaleString()} />
-              <Legend />
-              {countriesInData.map((c, i) => (
-                <Line key={c} type="monotone" dataKey={c} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{ r: 2 }} />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[450px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={lineData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--chart-grid))" />
+                <XAxis dataKey="year" fontSize={12} tick={tickStyle}>
+                  <Label value="Год" position="insideBottom" offset={-3} fontSize={12} fill="hsl(var(--chart-text))" />
+                </XAxis>
+                <YAxis fontSize={11} tickFormatter={fmtNum} tick={tickStyle}>
+                  <Label value="Количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={12} />
+                </YAxis>
+                <Tooltip formatter={(v: number) => v.toLocaleString()} contentStyle={cts} />
+                <Legend />
+                {countriesInData.map((c, i) => (
+                  <Line key={c} type="monotone" dataKey={c} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{ r: 2 }} />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
       </div>
 
-      {/* Row 2: Pie + Scatter */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="chart-container">
           <h3 className="section-title mb-3">3. Распределение по регионам</h3>
           <p className="text-xs text-muted-foreground mb-1">Регионы — Доля случаев (%)</p>
@@ -243,72 +232,76 @@ export default function ChartsPage() {
               <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={110} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                 {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
-              <Tooltip formatter={(v: number) => v.toLocaleString()} />
+              <Tooltip formatter={(v: number) => v.toLocaleString()} contentStyle={cts} />
             </PieChart>
           </ResponsiveContainer>
         </div>
         <div className="chart-container">
           <h3 className="section-title mb-3">4. ВВП vs Успешность лечения</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="gdp" name="ВВП на душу (USD)" fontSize={11}>
-                <Label value="ВВП на душу (USD)" position="insideBottom" offset={-3} fontSize={12} />
-              </XAxis>
-              <YAxis dataKey="treatment" name="Успешность лечения (%)" domain={[60, 100]} fontSize={11}>
-                <Label value="Успешность лечения (%)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
-              </YAxis>
-              <ZAxis range={[60, 60]} />
-              <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-              <Scatter data={scatterGdp} fill="hsl(var(--primary))">
-                {scatterGdp.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Scatter>
-            </ScatterChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[400px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <ScatterChart>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--chart-grid))" />
+                <XAxis dataKey="gdp" name="ВВП на душу (USD)" fontSize={11} tick={tickStyle}>
+                  <Label value="ВВП на душу (USD)" position="insideBottom" offset={-3} fontSize={12} fill="hsl(var(--chart-text))" />
+                </XAxis>
+                <YAxis dataKey="treatment" name="Успешность лечения (%)" domain={[60, 100]} fontSize={11} tick={tickStyle}>
+                  <Label value="Успешность лечения (%)" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={12} />
+                </YAxis>
+                <ZAxis range={[60, 60]} />
+                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={cts} />
+                <Scatter data={scatterGdp} fill="hsl(var(--primary))">
+                  {scatterGdp.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Scatter>
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
       </div>
 
-      {/* Row 3: Histogram + Box Plot */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="chart-container">
           <h3 className="section-title mb-3">5. Распределение вакцинации</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={histData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="range" fontSize={11}>
-                <Label value="Охват вакцинацией (%)" position="insideBottom" offset={-3} fontSize={12} />
-              </XAxis>
-              <YAxis fontSize={11}>
-                <Label value="Количество стран" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
-              </YAxis>
-              <Tooltip />
-              <Bar dataKey="count" name="Кол-во записей" fill="hsl(var(--accent))" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[400px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={histData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--chart-grid))" />
+                <XAxis dataKey="range" fontSize={11} tick={tickStyle}>
+                  <Label value="Охват вакцинацией (%)" position="insideBottom" offset={-3} fontSize={12} fill="hsl(var(--chart-text))" />
+                </XAxis>
+                <YAxis fontSize={11} tick={tickStyle}>
+                  <Label value="Количество стран" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={12} />
+                </YAxis>
+                <Tooltip contentStyle={cts} />
+                <Bar dataKey="count" name="Кол-во записей" fill="hsl(var(--accent))" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
         <div className="chart-container">
           <h3 className="section-title mb-3">6. Осложнения по уровням дохода</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={boxPlotData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="income" fontSize={11}>
-                <Label value="Уровень дохода" position="insideBottom" offset={-3} fontSize={12} />
-              </XAxis>
-              <YAxis fontSize={11} tickFormatter={fmtNum}>
-                <Label value="Количество осложненных случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={11} />
-              </YAxis>
-              <Tooltip formatter={(v: number) => v.toLocaleString()} />
-              <Legend />
-              <Bar dataKey="min" fill="#E74C3C" name="Мин" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="median" fill="hsl(var(--primary))" name="Медиана" radius={[2, 2, 0, 0]} />
-              <Bar dataKey="max" fill="hsl(var(--accent))" name="Макс" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[400px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={boxPlotData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--chart-grid))" />
+                <XAxis dataKey="income" fontSize={11} tick={tickStyle}>
+                  <Label value="Уровень дохода" position="insideBottom" offset={-3} fontSize={12} fill="hsl(var(--chart-text))" />
+                </XAxis>
+                <YAxis fontSize={11} tickFormatter={fmtNum} tick={tickStyle}>
+                  <Label value="Количество осложненных случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={11} />
+                </YAxis>
+                <Tooltip formatter={(v: number) => v.toLocaleString()} contentStyle={cts} />
+                <Legend />
+                <Bar dataKey="min" fill="#E74C3C" name="Мин" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="median" fill="hsl(var(--primary))" name="Медиана" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="max" fill="hsl(var(--accent))" name="Макс" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
       </div>
 
-      {/* Row 4: Heatmap + Bubble */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="chart-container">
           <h3 className="section-title mb-3">7. Корреляция факторов</h3>
           <p className="text-xs text-muted-foreground mb-1">Врачи, Успешность лечения, Вакцинация, Смертность, Доступ к медицине</p>
@@ -341,45 +334,48 @@ export default function ChartsPage() {
         <div className="chart-container">
           <h3 className="section-title mb-3">8. Вакцинация vs Смертность</h3>
           <p className="text-xs text-muted-foreground mb-1">Размер пузыря = Население</p>
-          <ResponsiveContainer width="100%" height={300}>
-            <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="vaccination" name="Охват вакцинацией (%)" fontSize={11}>
-                <Label value="Охват вакцинацией (%)" position="insideBottom" offset={-3} fontSize={12} />
-              </XAxis>
-              <YAxis dataKey="deaths" name="Смерти" fontSize={11} tickFormatter={fmtNum}>
-                <Label value="Смерти" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={12} />
-              </YAxis>
-              <ZAxis dataKey="population" range={[50, 800]} name="Население" />
-              <Tooltip formatter={(v: number) => v.toLocaleString()} />
-              <Scatter data={bubbleData} fill="hsl(var(--primary))">
-                {bubbleData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Scatter>
-            </ScatterChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[400px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <ScatterChart>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--chart-grid))" />
+                <XAxis dataKey="vaccination" name="Охват вакцинацией (%)" fontSize={11} tick={tickStyle}>
+                  <Label value="Охват вакцинацией (%)" position="insideBottom" offset={-3} fontSize={12} fill="hsl(var(--chart-text))" />
+                </XAxis>
+                <YAxis dataKey="deaths" name="Смерти" fontSize={11} tickFormatter={fmtNum} tick={tickStyle}>
+                  <Label value="Смерти" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={12} />
+                </YAxis>
+                <ZAxis dataKey="population" range={[50, 800]} name="Население" />
+                <Tooltip formatter={(v: number) => v.toLocaleString()} contentStyle={cts} />
+                <Scatter data={bubbleData} fill="hsl(var(--primary))">
+                  {bubbleData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Scatter>
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
       </div>
 
-      {/* Row 5: Area + Radar */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="chart-container">
           <h3 className="section-title mb-3">9. Объем заболеваемости по регионам</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={areaData.data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="year" fontSize={12}>
-                <Label value="Год" position="insideBottom" offset={-3} fontSize={12} />
-              </XAxis>
-              <YAxis fontSize={11} tickFormatter={fmtNum}>
-                <Label value="Суммарное количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle' }} fontSize={11} />
-              </YAxis>
-              <Tooltip formatter={(v: number) => v.toLocaleString()} />
-              <Legend />
-              {areaData.regs.map((r, i) => (
-                <Area key={r} type="monotone" dataKey={r} stackId="1" stroke={COLORS[i % COLORS.length]} fill={COLORS[i % COLORS.length]} fillOpacity={0.4} />
-              ))}
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="chart-scroll-wrapper"><div className="min-w-[400px]">
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={areaData.data}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--chart-grid))" />
+                <XAxis dataKey="year" fontSize={12} tick={tickStyle}>
+                  <Label value="Год" position="insideBottom" offset={-3} fontSize={12} fill="hsl(var(--chart-text))" />
+                </XAxis>
+                <YAxis fontSize={11} tickFormatter={fmtNum} tick={tickStyle}>
+                  <Label value="Суммарное количество случаев" angle={-90} position="insideLeft" style={{ textAnchor: 'middle', fill: 'hsl(var(--chart-text))' }} fontSize={11} />
+                </YAxis>
+                <Tooltip formatter={(v: number) => v.toLocaleString()} contentStyle={cts} />
+                <Legend />
+                {areaData.regs.map((r, i) => (
+                  <Area key={r} type="monotone" dataKey={r} stackId="1" stroke={COLORS[i % COLORS.length]} fill={COLORS[i % COLORS.length]} fillOpacity={0.4} />
+                ))}
+              </AreaChart>
+            </ResponsiveContainer>
+          </div></div>
         </div>
         <div className="chart-container">
           <h3 className="section-title mb-3">10. Профиль здравоохранения</h3>
@@ -394,23 +390,22 @@ export default function ChartsPage() {
           </div>
           <ResponsiveContainer width="100%" height={280}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="hsl(var(--border))" />
-              <PolarAngleAxis dataKey="metric" fontSize={10} />
-              <PolarRadiusAxis domain={[0, 100]} fontSize={9} />
+              <PolarGrid stroke="hsl(var(--chart-grid))" />
+              <PolarAngleAxis dataKey="metric" fontSize={10} tick={tickStyle} />
+              <PolarRadiusAxis domain={[0, 100]} fontSize={9} tick={tickStyle} />
               <Radar dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} name={radarCountry || countriesInData[0] || ''} />
-              <Tooltip />
+              <Tooltip contentStyle={cts} />
             </RadarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Row 6: Treemap */}
       <div className="chart-container">
         <h3 className="section-title mb-3">11. Иерархия стран по числу случаев (Treemap)</h3>
         <p className="text-xs text-muted-foreground mb-1">Страна — Количество случаев</p>
         <ResponsiveContainer width="100%" height={300}>
           <Treemap data={treemapData} dataKey="size" nameKey="name" content={<CustomTreemapContent />}>
-            <Tooltip formatter={(v: number) => v.toLocaleString()} />
+            <Tooltip formatter={(v: number) => v.toLocaleString()} contentStyle={cts} />
           </Treemap>
         </ResponsiveContainer>
       </div>

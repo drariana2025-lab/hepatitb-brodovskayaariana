@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect, useTransition } from 'react';
 import { rawData, years, HepRecord } from '@/data/hepatitisData';
+import { toast } from 'sonner';
 
 interface FilterState {
   selectedYears: number[];
@@ -16,6 +17,23 @@ interface FilterContextType extends FilterState {
   setSelectedCountry: (c: string) => void;
   setDetailCountry: (c: string | null) => void;
   filteredData: HepRecord[];
+  isFiltering: boolean;
+}
+
+const STORAGE_KEY = 'hepb-filters';
+
+function loadFilters(): Partial<FilterState> {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return {};
+}
+
+function saveFilters(state: Omit<FilterState, 'detailCountry'>) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {}
 }
 
 const FilterContext = createContext<FilterContextType | null>(null);
@@ -27,11 +45,26 @@ export const useFilters = () => {
 };
 
 export const FilterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [selectedYears, setSelectedYears] = useState<number[]>(years);
-  const [selectedRegion, setSelectedRegion] = useState('all');
-  const [selectedIncome, setSelectedIncome] = useState('all');
-  const [selectedCountry, setSelectedCountry] = useState('all');
+  const saved = loadFilters();
+  const [selectedYears, setSelectedYearsRaw] = useState<number[]>(saved.selectedYears?.length ? saved.selectedYears : years);
+  const [selectedRegion, setSelectedRegionRaw] = useState(saved.selectedRegion || 'all');
+  const [selectedIncome, setSelectedIncomeRaw] = useState(saved.selectedIncome || 'all');
+  const [selectedCountry, setSelectedCountryRaw] = useState(saved.selectedCountry || 'all');
   const [detailCountry, setDetailCountry] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const wrap = <T,>(setter: React.Dispatch<React.SetStateAction<T>>) => (val: T) => {
+    startTransition(() => setter(val));
+  };
+
+  const setSelectedYears = wrap(setSelectedYearsRaw);
+  const setSelectedRegion = wrap(setSelectedRegionRaw);
+  const setSelectedIncome = wrap(setSelectedIncomeRaw);
+  const setSelectedCountry = wrap(setSelectedCountryRaw);
+
+  useEffect(() => {
+    saveFilters({ selectedYears, selectedRegion, selectedIncome, selectedCountry });
+  }, [selectedYears, selectedRegion, selectedIncome, selectedCountry]);
 
   const filteredData = useMemo(() => {
     return rawData.filter(d => {
@@ -50,7 +83,8 @@ export const FilterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       selectedIncome, setSelectedIncome,
       selectedCountry, setSelectedCountry,
       detailCountry, setDetailCountry,
-      filteredData
+      filteredData,
+      isFiltering: isPending,
     }}>
       {children}
     </FilterContext.Provider>
