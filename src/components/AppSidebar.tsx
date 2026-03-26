@@ -12,7 +12,7 @@ const items = [
   { title: 'Здравоохранение', url: '/healthcare', icon: Activity },
   { title: 'Факторы риска', url: '/risk-factors', icon: AlertTriangle },
   { title: 'Таблицы', url: '/tables', icon: Table },
-  { title: 'Графики (11)', url: '/charts', icon: PieChart },
+  { title: 'Графики', url: '/charts', icon: PieChart },
 ];
 
 export function AppSidebar() {
