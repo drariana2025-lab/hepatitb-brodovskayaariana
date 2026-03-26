@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useEffect, useTransition } from 'react';
 import { rawData, years, HepRecord } from '@/data/hepatitisData';
+import { useUserData } from '@/contexts/UserDataContext';
 import { toast } from 'sonner';
 
 interface FilterState {
@@ -66,15 +67,18 @@ export const FilterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     saveFilters({ selectedYears, selectedRegion, selectedIncome, selectedCountry });
   }, [selectedYears, selectedRegion, selectedIncome, selectedCountry]);
 
+  const { customData } = useUserData();
+  const sourceData = customData || rawData;
+
   const filteredData = useMemo(() => {
-    return rawData.filter(d => {
+    return sourceData.filter(d => {
       if (!selectedYears.includes(d.year)) return false;
       if (selectedRegion !== 'all' && d.region !== selectedRegion) return false;
       if (selectedIncome !== 'all' && d.incomeLevel !== selectedIncome) return false;
       if (selectedCountry !== 'all' && d.country !== selectedCountry) return false;
       return true;
     });
-  }, [selectedYears, selectedRegion, selectedIncome, selectedCountry]);
+  }, [sourceData, selectedYears, selectedRegion, selectedIncome, selectedCountry]);
 
   return (
     <FilterContext.Provider value={{

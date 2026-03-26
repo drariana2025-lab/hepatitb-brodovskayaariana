@@ -1,4 +1,4 @@
-import { BarChart3, Shield, Activity, AlertTriangle, Syringe, Table, PieChart } from 'lucide-react';
+import { BarChart3, Shield, Activity, AlertTriangle, Syringe, Table, PieChart, UserCircle } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -13,6 +13,7 @@ const items = [
   { title: 'Факторы риска', url: '/risk-factors', icon: AlertTriangle },
   { title: 'Таблицы', url: '/tables', icon: Table },
   { title: 'Графики', url: '/charts', icon: PieChart },
+  { title: 'Личный кабинет', url: '/profile', icon: UserCircle },
 ];
 
 export function AppSidebar() {
@@ -25,7 +26,7 @@ export function AppSidebar() {
         <div className={`p-4 ${collapsed ? 'px-2' : ''}`}>
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-sidebar-primary shrink-0" />
-            {!collapsed && <span className="font-semibold text-sidebar-primary-foreground text-lg">HepB Monitor</span>}
+            {!collapsed && <span className="font-semibold text-sidebar-primary-foreground text-lg">Мониторинг</span>}
           </div>
         </div>
         <SidebarGroup>

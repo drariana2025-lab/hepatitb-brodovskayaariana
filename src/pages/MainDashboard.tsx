@@ -76,7 +76,7 @@ export default function MainDashboard() {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="page-title">Главная страница — Гепатит B</h1>
+        <h1 className="page-title">Главная страница — Мониторинг болезней</h1>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
