@@ -26,7 +26,7 @@ export function AppSidebar() {
         <div className={`p-4 ${collapsed ? 'px-2' : ''}`}>
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-sidebar-primary shrink-0" />
-            {!collapsed && <span className="font-semibold text-sidebar-primary-foreground text-lg">HepB Monitor</span>}
+            {!collapsed && <span className="font-semibold text-sidebar-primary-foreground text-lg">Мониторинг</span>}
           </div>
         </div>
         <SidebarGroup>
