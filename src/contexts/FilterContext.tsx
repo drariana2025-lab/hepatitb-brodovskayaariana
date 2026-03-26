@@ -78,7 +78,7 @@ export const FilterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (selectedCountry !== 'all' && d.country !== selectedCountry) return false;
       return true;
     });
-  }, [selectedYears, selectedRegion, selectedIncome, selectedCountry]);
+  }, [sourceData, selectedYears, selectedRegion, selectedIncome, selectedCountry]);
 
   return (
     <FilterContext.Provider value={{
