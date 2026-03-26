@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useEffect, useTransition } from 'react';
 import { rawData, years, HepRecord } from '@/data/hepatitisData';
+import { useUserData } from '@/contexts/UserDataContext';
 import { toast } from 'sonner';
 
 interface FilterState {
