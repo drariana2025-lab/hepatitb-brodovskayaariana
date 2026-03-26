@@ -1,4 +1,4 @@
-import { BarChart3, Shield, Activity, AlertTriangle, Syringe, Table, PieChart } from 'lucide-react';
+import { BarChart3, Shield, Activity, AlertTriangle, Syringe, Table, PieChart, UserCircle } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -13,6 +13,7 @@ const items = [
   { title: 'Факторы риска', url: '/risk-factors', icon: AlertTriangle },
   { title: 'Таблицы', url: '/tables', icon: Table },
   { title: 'Графики', url: '/charts', icon: PieChart },
+  { title: 'Личный кабинет', url: '/profile', icon: UserCircle },
 ];
 
 export function AppSidebar() {
