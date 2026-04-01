@@ -110,7 +110,7 @@ export default function ProfilePage() {
       // Upload to storage
       const filePath = `${user.id}/${Date.now()}_${file.name}`;
       const { error: storageError } = await supabase.storage
-        .from('user-data')
+        .from('uploads')
         .upload(filePath, file);
 
       if (storageError) {
@@ -145,7 +145,7 @@ export default function ProfilePage() {
   };
 
   const handleDeleteFile = async (fileRecord: UserFile) => {
-    await supabase.storage.from('user-data').remove([fileRecord.file_path]);
+    await supabase.storage.from('uploads').remove([fileRecord.file_path]);
     await supabase.from('user_files').delete().eq('id', fileRecord.id);
     if (activeFileName === fileRecord.file_name) clearCustomData();
     await fetchFiles();
