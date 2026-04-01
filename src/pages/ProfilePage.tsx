@@ -155,7 +155,7 @@ export default function ProfilePage() {
   const handleLoadFile = async (fileRecord: UserFile) => {
     try {
       const { data, error } = await supabase.storage
-        .from('user-data')
+        .from('uploads')
         .download(fileRecord.file_path);
 
       if (error || !data) {
